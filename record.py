@@ -9,25 +9,26 @@ coordinates_list = []
 x_coordinates = []
 y_coordinates = []
 
+ready = False
+held = False
+
+
 def serialize(entry, entry_coordinates_list, min_coordinates, max_coordinates):
     data = {}
     try:
-        aachar = open("data.pkl", "rb")
-        data = pickle.load(aachar)
-        aachar.close()
+        achaar = open("data.pkl", "rb")
+        data = pickle.load(achaar)
+        achaar.close()
     except FileNotFoundError:
         pass
     except EOFError:
         pass
     data[entry] = {"coordinates":entry_coordinates_list, "min":min_coordinates, "max":max_coordinates}
-    aachar = open("data.pkl", "wb")
-    pickle.dump(data, aachar)
-    aachar.close()
+    achaar = open("data.pkl", "wb")
+    pickle.dump(data, achaar)
+    achaar.close()
 
 
-
-ready = False
-held = False
 
 def on_press(key):
     global ready
@@ -49,32 +50,53 @@ def on_click(x,y, button, pressed):
         held = False
         return False
 
+is_accepted = False
 
-with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
-    listener.join()
+while(not is_accepted):
+    coordinates_list = []
+    x_coordinates = []
+    y_coordinates = []
 
-print("READY TO RECORD\n")
+    ready = False
+    held = False
 
-with mouse.Listener(on_click=on_click) as listener:
-    while listener.running:
-        if held:
-            position = mouse.Controller().position
-            if position not in coordinates_list:
-                coordinates_list.append(position)
-                x_coordinates.append(position[0])
-                y_coordinates.append(position[1])
+    print("PRESS SPACE TO GET READY: ")
 
-print("RECORDED\n")
+    with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
+        listener.join()
 
-entry = input("Name of entry: ")
-serialize(entry, coordinates_list, (min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates)))
+    print("\nREADY TO RECORD\n")
 
-print("Successfully stored the coordinates\n\n\n")
+    with mouse.Listener(on_click=on_click) as listener:
+        while listener.running:
+            if held:
+                position = mouse.Controller().position
+                if position not in coordinates_list:
+                    coordinates_list.append(position)
+                    x_coordinates.append(position[0])
+                    y_coordinates.append(position[1])
 
-print(coordinates_list)
+    print("RECORDED\n")
 
-# time.sleep(10)
-# pyautogui.mouseDown(button="left")
-# for coords in coordinates:
-#     pyautogui.moveTo(coords[0], coords[1])
-# pyautogui.mouseUp(button="left")
+    min_x, min_y, max_x, max_y = min(x_coordinates), min(y_coordinates), max(x_coordinates), max(y_coordinates)
+
+    relative_coordinates_list = []
+
+    for coordinates in coordinates_list:
+        relative_coordinates_list.append((coordinates[0] - min_x, coordinates[1] - min_y))
+
+    max_x = max_x - min_x
+    max_y = max_y - min_y
+    min_x, min_y = 0, 0
+
+    accepted = input("Accept the recording: ")
+    if accepted in ['Y', 'y', 'yes']:
+        is_accepted = True
+        entry = input("Name of entry: ")
+        serialize(entry, relative_coordinates_list, (min_x, min_y), (max_x, max_y))
+
+        print("\nSuccessfully stored the coordinates\n")
+        sys.exit()
+    elif accepted == "-1":
+        sys.exit()
+    print("\n\n")
