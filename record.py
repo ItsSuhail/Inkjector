@@ -5,13 +5,25 @@ from pynput import *
 import time
 
 
-coordinates = []
+coordinates_list = []
+x_coordinates = []
+y_coordinates = []
 
-# def record():
-#     position = pyautogui.position()
-#     coordinates.add((position[0],position[1]))
+def serialize(entry, entry_coordinates_list):
+    data = {}
+    try:
+        aachar = open("data.pkl", "rb")
+        data = pickle.load(aachar)
+        aachar.close()
+    except FileNotFoundError:
+        pass
+    except EOFError:
+        pass
+    data[entry] = entry_coordinates_list
+    aachar = open("data.pkl", "wb")
+    pickle.dump(data, aachar)
+    aachar.close()
 
-# def serialize():
 
 
 ready = False
@@ -23,7 +35,8 @@ def on_press(key):
         ready = True
 
 def on_release(key):
-    return False
+    if ready:
+        return False
 
 def on_click(x,y, button, pressed):
     global ready, held
@@ -40,20 +53,28 @@ def on_click(x,y, button, pressed):
 with keyboard.Listener(on_press=on_press, on_release=on_release) as listener:
     listener.join()
 
-print("READY")
+print("READY TO RECORD\n")
 
 with mouse.Listener(on_click=on_click) as listener:
     while listener.running:
         if held:
             position = mouse.Controller().position
-            if position not in coordinates:
-                coordinates.append(position)
+            if position not in coordinates_list:
+                coordinates_list.append(position)
+                x_coordinates.append(position[0])
+                y_coordinates.append(position[1])
 
-print("RELEASED")
+print("RECORDED\n")
 
-print(coordinates)
-time.sleep(10)
-pyautogui.mouseDown(button="left")
-for coords in coordinates:
-    pyautogui.moveTo(coords[0], coords[1])
-pyautogui.mouseUp(button="left")
+entry = input("Name of entry: ")
+serialize(entry, coordinates_list)
+
+print("Successfully stored the coordinates\n\n\n")
+
+print(coordinates_list)
+
+# time.sleep(10)
+# pyautogui.mouseDown(button="left")
+# for coords in coordinates:
+#     pyautogui.moveTo(coords[0], coords[1])
+# pyautogui.mouseUp(button="left")
