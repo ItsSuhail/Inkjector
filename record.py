@@ -9,7 +9,7 @@ coordinates_list = []
 x_coordinates = []
 y_coordinates = []
 
-def serialize(entry, entry_coordinates_list):
+def serialize(entry, entry_coordinates_list, min_coordinates, max_coordinates):
     data = {}
     try:
         aachar = open("data.pkl", "rb")
@@ -19,7 +19,7 @@ def serialize(entry, entry_coordinates_list):
         pass
     except EOFError:
         pass
-    data[entry] = entry_coordinates_list
+    data[entry] = {"coordinates":entry_coordinates_list, "min":min_coordinates, "max":max_coordinates}
     aachar = open("data.pkl", "wb")
     pickle.dump(data, aachar)
     aachar.close()
@@ -67,7 +67,7 @@ with mouse.Listener(on_click=on_click) as listener:
 print("RECORDED\n")
 
 entry = input("Name of entry: ")
-serialize(entry, coordinates_list)
+serialize(entry, coordinates_list, (min(x_coordinates), min(y_coordinates)), (max(x_coordinates), max(y_coordinates)))
 
 print("Successfully stored the coordinates\n\n\n")
 
